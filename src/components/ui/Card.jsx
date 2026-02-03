@@ -1,12 +1,5 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-// Helper for reuse if utils files isn't separate yet, though I should make a utils file.
-export function cn(...inputs) {
-    return twMerge(clsx(inputs));
-}
 
 const Card = React.forwardRef(({ className, ...props }, ref) => (
     <div

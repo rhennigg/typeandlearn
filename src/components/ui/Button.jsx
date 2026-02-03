@@ -1,13 +1,6 @@
 import React from 'react';
-import { cn } from '@/lib/utils'; // We need to create this util
-import { cva } from 'class-variance-authority'; // We didn't install this, but it's useful. I'll use clsx standard for now to save installing more deps yet.
-
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-export function cn(...inputs) {
-    return twMerge(clsx(inputs));
-}
+import { cn } from '@/lib/utils';
+import { cva } from 'class-variance-authority';
 
 const Button = React.forwardRef(({ className, variant = 'primary', size = 'default', children, ...props }, ref) => {
     const baseStyles = "inline-flex items-center justify-center font-sans uppercase tracking-widest text-xs font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ink focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none rounded-none";

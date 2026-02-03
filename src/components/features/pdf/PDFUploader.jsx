@@ -58,7 +58,7 @@ export const PDFUploader = () => {
         <Card className="max-w-md mx-auto p-8 border-dashed border-2 border-ink/20 bg-background-light/50 hover:bg-background-light transition-colors">
             <div className="flex flex-col items-center text-center space-y-4">
                 <div className="p-4 bg-ink/5 rounded-full">
-                    {isProcStore ? (
+                    {isProcessing ? (
                         <Loader2 className="w-8 h-8 animate-spin text-ink" />
                     ) : (
                         <Upload className="w-8 h-8 text-ink" />
@@ -87,9 +87,9 @@ export const PDFUploader = () => {
                 <Button
                     variant="secondary"
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={isProcStore}
+                    disabled={isProcessing}
                 >
-                    {isProcStore ? "Processing..." : "Select PDF"}
+                    {isProcessing ? "Processing..." : "Select PDF"}
                 </Button>
             </div>
         </Card>
