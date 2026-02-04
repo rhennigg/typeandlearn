@@ -5,6 +5,8 @@ import { syncProgress } from '@/services/driveSync';
 import { Button } from '@/components/ui/Button';
 import { ArrowLeft, ArrowRight, MessageSquare } from 'lucide-react';
 import { NotesSidebar } from './NotesSidebar';
+import { cn } from '@/lib/utils';
+import { HighlightingHelper } from './HighlightingHelper'; // We'll create this
 
 export const ReadingEngine = () => {
     const { pages, currentPageIndex, nextPage, prevPage, document, annotations, addAnnotation } = useDocumentStore();
@@ -12,39 +14,76 @@ export const ReadingEngine = () => {
 
     const currentPage = pages[currentPageIndex];
     const [showSidebar, setShowSidebar] = useState(false);
+    const [pendingHighlight, setPendingHighlight] = useState(null);
 
-    const handleAddNote = async (note) => {
-        addAnnotation(note);
-        // Sync immediately (optimistic update in store, async save)
+    const containerRef = React.useRef(null);
+
+    const handleSelection = () => {
+        const selection = window.getSelection();
+        if (!selection || selection.isCollapsed || !containerRef.current) return;
+
+        const range = selection.getRangeAt(0);
+        if (!containerRef.current.contains(range.commonAncestorContainer)) return;
+
+        // Calculate offsets relative to the text content
+        const offsets = HighlightingHelper.getSelectionOffsets(containerRef.current);
+        if (offsets) {
+            setPendingHighlight({
+                start: offsets.start,
+                end: offsets.end,
+                text: selection.toString()
+            });
+            setShowSidebar(true);
+        }
+    };
+
+    const handleAddNote = async (noteContent) => {
+        const newAnnotation = {
+            ...noteContent,
+            highlights: pendingHighlight ? [pendingHighlight] : []
+        };
+
+        addAnnotation(newAnnotation);
+        setPendingHighlight(null);
+
+        // Sync immediately
         if (accessToken && document) {
-            const nextAnnotations = [...annotations, { ...note, id: Date.now() }];
+            const nextAnnotations = [...annotations, { ...newAnnotation, id: Date.now() }];
             try {
-                // We need to construct the full save object. 
-                // Idealy we merge with existing stats but for now let's just save what we have.
-                // NOTE: This might overwrite typing stats if we aren't careful.
-                // Better strategy: Read-Modify-Write or separate files. 
-                // For simplicity: We will just save annotations array in the same JSON structure.
                 await syncProgress(accessToken, document.title, {
                     last_page: currentPageIndex + 1,
                     total_pages: document.totalPages,
                     modified_at: new Date().toISOString(),
                     annotations: nextAnnotations,
-                    // stats: ... we risk losing stats here if we don't have them in store.
-                    // Let's defer full sync validation for "Polish" phase or accept trade-off.
                 });
             } catch (e) { console.error(e); }
         }
+    };
+
+    const renderPageContent = () => {
+        if (!currentPage) return null;
+
+        const pageAnnotations = annotations.filter(a => a.pageNumber === currentPageIndex + 1);
+        const highlights = pageAnnotations.flatMap(a => a.highlights || []);
+
+        return HighlightingHelper.renderTextWithHighlights(currentPage.text, highlights);
     };
 
     if (!currentPage) return <div>No content</div>;
 
     return (
         <div className="min-h-screen bg-paper dark:bg-background-dark text-ink dark:text-gray-100 flex transition-colors duration-500">
-            <div className={`flex-1 flex flex-col items-center py-20 px-8 transition-all duration-300 ${showSidebar ? 'mr-0' : ''}`}>
+            <div
+                className={`flex-1 flex flex-col items-center py-20 px-8 transition-all duration-300 ${showSidebar ? 'mr-0' : ''}`}
+                onMouseUp={handleSelection}
+            >
                 <div className="max-w-3xl w-full space-y-8">
-                    <p className="font-serif text-xl md:text-2xl leading-relaxed text-justify whitespace-pre-line">
-                        {currentPage.text}
-                    </p>
+                    <div
+                        ref={containerRef}
+                        className="font-serif text-xl md:text-2xl leading-relaxed text-justify whitespace-pre-line"
+                    >
+                        {renderPageContent()}
+                    </div>
                 </div>
             </div>
 
@@ -52,7 +91,11 @@ export const ReadingEngine = () => {
                 <NotesSidebar
                     annotations={annotations}
                     pageIndex={currentPageIndex}
-                    onClose={() => setShowSidebar(false)}
+                    pendingHighlight={pendingHighlight}
+                    onClose={() => {
+                        setShowSidebar(false);
+                        setPendingHighlight(null);
+                    }}
                     onAddNote={handleAddNote}
                 />
             )}

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { X, Tag } from 'lucide-react';
 
-export const NotesSidebar = ({ annotations, onClose, onAddNote, pageIndex }) => {
+export const NotesSidebar = ({ annotations, onClose, onAddNote, pageIndex, pendingHighlight }) => {
     const [note, setNote] = useState('');
     const [activeTags, setActiveTags] = useState([]);
 
@@ -12,7 +12,7 @@ export const NotesSidebar = ({ annotations, onClose, onAddNote, pageIndex }) => 
     const handleAdd = () => {
         if (!note.trim()) return;
         onAddNote({
-            text: "Page Note", // Generic anchor for now, selection is harder
+            text: pendingHighlight ? pendingHighlight.text : "Page Note",
             comment: note,
             tags: activeTags,
             pageNumber: pageIndex + 1
@@ -56,6 +56,11 @@ export const NotesSidebar = ({ annotations, onClose, onAddNote, pageIndex }) => 
             </div>
 
             <div className="space-y-3 pt-4 border-t border-ink/10">
+                {pendingHighlight && (
+                    <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 border-l-2 border-yellow-400 text-[11px] font-sans italic text-ink-light line-clamp-2">
+                        "{pendingHighlight.text}"
+                    </div>
+                )}
                 <textarea
                     value={note}
                     onChange={(e) => setNote(e.target.value)}

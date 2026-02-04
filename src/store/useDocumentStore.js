@@ -3,7 +3,7 @@ import { create } from 'zustand';
 const useDocumentStore = create((set) => ({
     document: null, // { id, title, totalPages }
     pages: [], // Array of { pageNumber, text }
-    annotations: [], // Array of { pageNumber, text, comment, tags, id }
+    annotations: [], // Array of { pageNumber, text, comment, tags, id, highlights: Array<{start, end, text}> }
     currentPageIndex: 0,
     isProcessing: false,
 
