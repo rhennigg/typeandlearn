@@ -54,7 +54,7 @@ function AppContent() {
                     >
                         Type
                     </Button>
-                    <div className="h-6 w-px bg-ink/20 mx-2"></div>
+                    <div className="h-6 w-px bg-ink/20 dark:bg-gray-700 mx-2"></div>
                     <Button variant="ghost" size="sm" onClick={handleExitSession}>Exit</Button>
                 </div>
 
@@ -73,17 +73,17 @@ function AppContent() {
                     {document && <PDFExporter />}
                 </div>
 
-                <nav className="text-sm font-sans text-ink-light space-x-4 flex items-center">
+                <nav className="text-sm font-sans space-x-4 flex items-center">
                     <ThemeToggle />
                     {showMainUI ? (
                         <>
-                            {isAuthenticated && <span className="hidden sm:inline-block">Welcome, {user?.given_name}</span>}
-                            {isGuest && <span className="hidden sm:inline-block italic opacity-60">Guest Mode</span>}
+                            {isAuthenticated && <span className="hidden sm:inline-block text-ink-light dark:text-gray-400">Welcome, {user?.given_name}</span>}
+                            {isGuest && <span className="hidden sm:inline-block italic opacity-60 text-ink-light dark:text-gray-400">Guest Mode</span>}
                             <Button variant="ghost" size="sm" onClick={logout}>Sign Out</Button>
                             {document && <Button variant="ghost" size="sm" onClick={handleReset}>New Upload</Button>}
                         </>
                     ) : (
-                        <span className="text-xs uppercase tracking-widest opacity-50">Locked</span>
+                        <span className="text-xs uppercase tracking-widest opacity-50 dark:text-gray-500">Locked</span>
                     )}
                 </nav>
             </header>
