@@ -9,14 +9,14 @@ import { TypingEngine } from '@/components/features/typing/TypingEngine';
 import { ThemeToggle } from '@/components/features/ui/ThemeToggle';
 import { ReadingEngine } from '@/components/features/reading/ReadingEngine';
 import { PDFExporter } from '@/components/features/export/PDFExporter';
+import { ReadingConfigModal } from '@/components/features/pdf/ReadingConfigModal';
 
 // NOTE: You need to create a .env file with VITE_GOOGLE_CLIENT_ID
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "PLACEHOLDER_CLIENT_ID";
 
 function AppContent() {
     const { isAuthenticated, isGuest, user, logout, setGuestMode } = useAuthStore();
-    const { document, resetDocument } = useDocumentStore();
-    const [appMode, setAppMode] = useState('idle'); // 'idle', 'typing', 'reading'
+    const { document, resetDocument, appMode, setAppMode } = useDocumentStore();
 
     const handleStartTyping = () => setAppMode('typing');
     const handleStartReading = () => setAppMode('reading');
@@ -31,18 +31,26 @@ function AppContent() {
         setGuestMode(true);
     };
 
+
     // Active Session View
-    if (appMode !== 'idle' && document) {
+    if ((appMode === 'reading' || appMode === 'typing' || appMode === 'config') && document) {
         return (
-            <div className="relative">
-                <div className="fixed top-4 right-8 z-50 flex items-center gap-2">
+            <div className="min-h-screen bg-background-light dark:bg-background-dark relative">
+                {/* 1. Engine Content Layer (z-0) */}
+                <div className="relative z-0">
+                    {appMode === 'typing' ? <TypingEngine /> : <ReadingEngine />}
+                </div>
+
+                {/* 2. Global Controls Layer (z-50) */}
+                <div className="fixed top-4 right-8 z-[60] flex items-center gap-2">
                     <ThemeToggle />
-                    <div className="h-6 w-px bg-ink/20 mx-2"></div>
+                    <div className="h-6 w-px bg-ink/20 dark:bg-gray-700 mx-2"></div>
                     <Button
                         variant={appMode === 'reading' ? 'primary' : 'ghost'}
                         size="sm"
                         onClick={handleStartReading}
                         className={appMode === 'reading' ? "cursor-default" : ""}
+                        disabled={appMode === 'config'}
                     >
                         Read
                     </Button>
@@ -51,6 +59,7 @@ function AppContent() {
                         size="sm"
                         onClick={handleStartTyping}
                         className={appMode === 'typing' ? "cursor-default" : ""}
+                        disabled={appMode === 'config'}
                     >
                         Type
                     </Button>
@@ -58,7 +67,13 @@ function AppContent() {
                     <Button variant="ghost" size="sm" onClick={handleExitSession}>Exit</Button>
                 </div>
 
-                {appMode === 'typing' ? <TypingEngine /> : <ReadingEngine />}
+                {/* 3. Modal Layer (Always rendered last for final priority) */}
+                {appMode === 'config' && (
+                    <ReadingConfigModal
+                        onConfirm={() => setAppMode('reading')}
+                        onCancel={() => setAppMode('idle')}
+                    />
+                )}
             </div>
         );
     }

@@ -48,8 +48,6 @@ export const PDFExporter = () => {
                                         `).join('')}
                                     </div>
                                 ` : ''}
-                                
-                                <div class="page-number">Page ${page.pageNumber}</div>
                             </div>
                             <div class="page-break"></div>
                         `;

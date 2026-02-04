@@ -8,7 +8,7 @@ import { ArrowRight, RotateCcw, CheckCircle } from 'lucide-react';
 import { syncProgress } from '@/services/driveSync';
 
 export const TypingEngine = () => {
-    const { pages, currentPageIndex, nextPage, prevPage, resetDocument, document } = useDocumentStore();
+    const { pages, currentPageIndex, nextPage, prevPage, resetDocument, document, fontSize } = useDocumentStore();
     const { accessToken } = useAuthStore();
 
     const currentPage = pages[currentPageIndex];
@@ -76,7 +76,7 @@ export const TypingEngine = () => {
         try {
             const progressData = {
                 last_page: pageIndex + 1,
-                total_pages: document.totalPages,
+                total_pages: pages.length,
                 modified_at: new Date().toISOString(),
                 stats: finalStats
             };
@@ -135,7 +135,8 @@ export const TypingEngine = () => {
             {/* Main Typing Area */}
             <div className="flex-1 max-w-4xl mx-auto w-full px-8 py-20 flex flex-col justify-center items-center">
                 <div
-                    className="font-serif text-2xl md:text-3xl leading-relaxed tracking-wide text-justify outline-none select-none relative dark:text-gray-100"
+                    className="font-serif leading-relaxed tracking-wide text-justify outline-none select-none relative dark:text-gray-100"
+                    style={{ fontSize: `${fontSize}px` }}
                     onClick={() => inputRef.current?.focus()}
                 >
                     {renderText()}
@@ -175,7 +176,7 @@ export const TypingEngine = () => {
             </div>
 
             <div className="fixed bottom-6 right-6 text-sm font-sans text-ink-light dark:text-gray-500">
-                Page {currentPageIndex + 1} / {document.totalPages}
+                Page {currentPageIndex + 1} / {pages.length}
             </div>
         </div>
     );
