@@ -6,9 +6,8 @@ import useDocumentStore from '@/store/useDocumentStore';
 import { Settings2, Type, Layout, Play, Search, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
-    // ... items extracted from useDocumentStore
     const {
-        document,
+        document: activeDocument,
         pages,
         fontSize, setFontSize,
         contentPadding, setContentPadding,
@@ -23,7 +22,7 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
     const [searchPhrase, setSearchPhrase] = React.useState('');
     const [matchStatus, setMatchStatus] = React.useState('idle'); // 'idle', 'found', 'not_found'
 
-    if (!document) return null;
+    if (!activeDocument) return null;
 
     const handleStart = () => {
         setCurrentPageIndex(startPageOffset);
@@ -51,7 +50,7 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background-dark/80 backdrop-blur-lg animate-fade-in px-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background-dark/60 backdrop-blur-md animate-fade-in px-4">
             <Card className="w-full max-w-lg p-10 bg-paper dark:bg-background-dark shadow-2xl space-y-8 border-ink/10 relative overflow-hidden">
                 {/* Visual Accent */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-ink opacity-10"></div>
@@ -67,60 +66,27 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
                         <Button variant="ghost" size="sm" onClick={handleCancel} className="text-[10px] opacity-50 hover:opacity-100 uppercase tracking-widest">Cancel</Button>
                     </div>
                     <p className="text-sm font-sans text-ink-light leading-relaxed">
-                        Tailor the flow of <span className="text-ink font-semibold dark:text-gray-200">"{document.title}"</span> to your learning style.
+                        Tailor the flow of <span className="text-ink font-semibold dark:text-gray-200">"{activeDocument.title}"</span> to your learning style.
                     </p>
                 </header>
 
                 <div className="space-y-8 py-2">
-                    {/* Font Size & Lines per Page Row */}
-                    <div className="grid grid-cols-2 gap-8">
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-baseline">
-                                <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-ink-light flex items-center gap-2">
-                                    <Type size={12} /> Size
-                                </label>
-                                <span className="font-sans text-xs font-semibold">{fontSize}px</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="14" max="42" step="1"
-                                value={fontSize}
-                                onChange={(e) => setFontSize(parseInt(e.target.value))}
-                                className="w-full h-1 bg-ink/10 rounded-full appearance-none cursor-pointer accent-ink dark:bg-gray-700"
-                            />
-                        </div>
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-baseline">
-                                <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-ink-light flex items-center gap-2">
-                                    <Layout size={12} /> Lines
-                                </label>
-                                <span className="font-sans text-xs font-semibold">{linesPerPage}</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="10" max="60" step="1"
-                                value={linesPerPage}
-                                onChange={(e) => setLinesPerPage(parseInt(e.target.value))}
-                                className="w-full h-1 bg-ink/10 rounded-full appearance-none cursor-pointer accent-ink dark:bg-gray-700"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Viewport Margin */}
+                    {/* Font Size Row */}
                     <div className="space-y-4">
                         <div className="flex justify-between items-baseline">
                             <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-ink-light flex items-center gap-2">
-                                <Layout size={12} /> Horizontal Margin
+                                <Type size={12} /> Font Size
                             </label>
-                            <span className="font-sans text-xs font-semibold">{contentPadding}px</span>
+                            <span className="font-sans text-xs font-semibold">{fontSize}px</span>
                         </div>
                         <input
                             type="range"
-                            min="0" max="240" step="4"
-                            value={contentPadding}
-                            onChange={(e) => setContentPadding(parseInt(e.target.value))}
+                            min="14" max="42" step="1"
+                            value={fontSize}
+                            onChange={(e) => setFontSize(parseInt(e.target.value))}
                             className="w-full h-1 bg-ink/10 rounded-full appearance-none cursor-pointer accent-ink dark:bg-gray-700"
                         />
+                        <p className="text-[10px] text-ink-light/60 font-sans italic">Pages will automatically adjust to fit your screen.</p>
                     </div>
 
                     {/* Smart Start Point Selection */}
@@ -168,6 +134,6 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
                 </div>
             </Card>
         </div>,
-        document.body
+        window.document.body
     );
 };

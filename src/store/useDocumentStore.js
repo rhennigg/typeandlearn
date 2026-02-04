@@ -7,9 +7,9 @@ const useDocumentStore = create((set) => ({
     currentPageIndex: 0,
     isProcessing: false,
     fontSize: 20,
-    contentPadding: 24,
+    contentPadding: 80,
     startPageOffset: 0,
-    linesPerPage: 20,
+    linesPerPage: 15,
     appMode: 'idle', // 'idle', 'config', 'reading', 'typing'
     rawText: '',
 

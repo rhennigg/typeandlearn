@@ -31,27 +31,22 @@ export const PDFExporter = () => {
                 </head>
                 <body>
                     <h1>${document.title}</h1>
-                    ${pages.map(page => {
-            const pageNotes = annotations.filter(a => a.pageNumber === page.pageNumber);
-            return `
-                            <div class="page text-content">
-                                <p>${page.text}</p>
-                                
-                                ${pageNotes.length > 0 ? `
-                                    <div class="annotations-section">
-                                        <h3>Notes</h3>
-                                        ${pageNotes.map(note => `
-                                            <div class="annotation">
-                                                <p>${note.comment}</p>
-                                                <div>${note.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                ` : ''}
-                            </div>
-                            <div class="page-break"></div>
-                        `;
-        }).join('')}
+                    
+                    <div class="text-content">
+                        ${pages.map(page => `<p>${page.text}</p>`).join('\n')}
+                    </div>
+
+                    ${annotations.length > 0 ? `
+                        <div class="annotations-section" style="margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px;">
+                            <h2 style="font-family: 'Inter', sans-serif;">Notes & Highlights</h2>
+                            ${annotations.map(note => `
+                                <div class="annotation">
+                                    <p>${note.comment}</p>
+                                    <div>${note.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
                 </body>
             </html>
         `;

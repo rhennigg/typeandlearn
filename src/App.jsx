@@ -10,6 +10,7 @@ import { ThemeToggle } from '@/components/features/ui/ThemeToggle';
 import { ReadingEngine } from '@/components/features/reading/ReadingEngine';
 import { PDFExporter } from '@/components/features/export/PDFExporter';
 import { ReadingConfigModal } from '@/components/features/pdf/ReadingConfigModal';
+import { cn } from '@/lib/utils';
 
 // NOTE: You need to create a .env file with VITE_GOOGLE_CLIENT_ID
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "PLACEHOLDER_CLIENT_ID";
@@ -37,7 +38,10 @@ function AppContent() {
         return (
             <div className="min-h-screen bg-background-light dark:bg-background-dark relative">
                 {/* 1. Engine Content Layer (z-0) */}
-                <div className="relative z-0">
+                <div className={cn(
+                    "relative z-0 transition-opacity duration-300",
+                    appMode === 'config' && "opacity-50 pointer-events-none"
+                )}>
                     {appMode === 'typing' ? <TypingEngine /> : <ReadingEngine />}
                 </div>
 

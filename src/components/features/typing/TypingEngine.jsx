@@ -8,7 +8,16 @@ import { ArrowRight, RotateCcw, CheckCircle } from 'lucide-react';
 import { syncProgress } from '@/services/driveSync';
 
 export const TypingEngine = () => {
-    const { pages, currentPageIndex, nextPage, prevPage, resetDocument, document, fontSize } = useDocumentStore();
+    const {
+        pages,
+        currentPageIndex,
+        nextPage,
+        prevPage,
+        resetDocument,
+        document,
+        fontSize,
+        setLinesPerPage
+    } = useDocumentStore();
     const { accessToken } = useAuthStore();
 
     const currentPage = pages[currentPageIndex];
@@ -21,7 +30,29 @@ export const TypingEngine = () => {
     const [isSyncing, setIsSyncing] = useState(false);
 
     const inputRef = useRef(null);
-    const textRef = useRef(null);
+    const textContainerRef = useRef(null);
+
+    // Dynamic Paging Logic
+    useEffect(() => {
+        const calculateLines = () => {
+            if (!textContainerRef.current) return;
+
+            const availableHeight = textContainerRef.current.clientHeight;
+            // Line height is roughly fontSize * 1.625 (standard for our serif font)
+            const lineHeight = fontSize * 1.625;
+            const targetLines = Math.max(5, Math.floor(availableHeight / lineHeight));
+
+            if (targetLines !== useDocumentStore.getState().linesPerPage) {
+                setLinesPerPage(targetLines);
+            }
+        };
+
+        const observer = new ResizeObserver(calculateLines);
+        if (textContainerRef.current) observer.observe(textContainerRef.current);
+
+        calculateLines();
+        return () => observer.disconnect();
+    }, [fontSize, setLinesPerPage]);
 
     // Text to type
     const targetText = currentPage?.text || "";
@@ -128,18 +159,23 @@ export const TypingEngine = () => {
     if (!currentPage) return <div>No page content found.</div>;
 
     return (
-        <div className="relative min-h-screen bg-paper dark:bg-background-dark flex flex-col transition-colors duration-500">
+        <div className="h-screen bg-paper dark:bg-background-dark flex flex-col transition-colors duration-500 overflow-hidden">
             {/* Stats Sidebar */}
             <TypingStats stats={stats} />
 
             {/* Main Typing Area */}
-            <div className="flex-1 max-w-4xl mx-auto w-full px-8 py-20 flex flex-col justify-center items-center">
+            <div className="flex-1 max-w-4xl mx-auto w-full px-8 pt-24 pb-20 flex flex-col justify-center items-center overflow-hidden">
                 <div
-                    className="font-serif leading-relaxed tracking-wide text-justify outline-none select-none relative dark:text-gray-100"
-                    style={{ fontSize: `${fontSize}px` }}
-                    onClick={() => inputRef.current?.focus()}
+                    ref={textContainerRef}
+                    className="w-full flex-1 flex flex-col justify-center overflow-hidden"
                 >
-                    {renderText()}
+                    <div
+                        className="font-serif leading-relaxed tracking-wide text-justify outline-none select-none relative dark:text-gray-100"
+                        style={{ fontSize: `${fontSize}px` }}
+                        onClick={() => inputRef.current?.focus()}
+                    >
+                        {renderText()}
+                    </div>
                 </div>
 
                 {/* Completion Actions */}
