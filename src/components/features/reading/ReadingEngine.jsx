@@ -116,7 +116,22 @@ export const ReadingEngine = () => {
             highlights = [...highlights, pendingHighlight];
         }
 
-        return HighlightingHelper.renderTextWithHighlights(currentPage.text, highlights);
+        return (
+            <>
+                {HighlightingHelper.renderTextWithHighlights(currentPage.text, highlights)}
+                {appMode === 'config' && (
+                    <div className="mt-8 pt-4 border-t-2 border-dashed border-ink/20 dark:border-white/20 relative">
+                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 bg-paper dark:bg-background-dark text-[10px] uppercase tracking-[0.3em] font-bold text-ink/30 dark:text-white/30">
+                            Page Boundary
+                        </span>
+                        <div className="opacity-10 dark:opacity-5">
+                            {pages[currentPageIndex + 1]?.text?.split('\n').slice(0, 3).join('\n')}
+                            <br />...
+                        </div>
+                    </div>
+                )}
+            </>
+        );
     };
 
     const currentPage = pages[currentPageIndex];

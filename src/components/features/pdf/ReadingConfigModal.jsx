@@ -10,7 +10,6 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
         document: activeDocument,
         pages,
         fontSize, setFontSize,
-        contentPadding, setContentPadding,
         startPageOffset, setStartPageOffset,
         linesPerPage, setLinesPerPage,
         setCurrentPageIndex,
@@ -37,7 +36,7 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
     const handleSearch = (phrase) => {
         setSearchPhrase(phrase);
         if (phrase.trim().length >= 4) {
-            const found = rawText.toLowerCase().includes(phrase.toLowerCase());
+            const found = activeDocument?.title ? rawText.toLowerCase().includes(phrase.toLowerCase()) : false;
             if (found) {
                 jumpToText(phrase);
                 setMatchStatus('found');
@@ -48,6 +47,35 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
             setMatchStatus('idle');
         }
     };
+
+    const getContextPreview = () => {
+        const fullText = rawText;
+        const phrase = searchPhrase.trim();
+
+        let targetIndex = -1;
+        if (phrase.length >= 4) {
+            targetIndex = fullText.toLowerCase().indexOf(phrase.toLowerCase());
+        }
+
+        if (targetIndex !== -1) {
+            const textBefore = fullText.substring(0, targetIndex);
+            const textAfter = fullText.substring(targetIndex);
+
+            const linesBefore = textBefore.split('\n');
+            const linesAfter = textAfter.split('\n');
+
+            // Get last 2 lines from before and current line + next 5 lines
+            const contextBefore = linesBefore.slice(-2).join('\n');
+            const contextAfter = linesAfter.slice(0, 6).join('\n');
+
+            return contextBefore + (contextBefore ? '\n' : '') + contextAfter;
+        } else {
+            // Default page preview (current slider position)
+            return pages[startPageOffset]?.text?.split('\n').slice(0, 7).join('\n') || "No preview available";
+        }
+    };
+
+    const previewDisplay = getContextPreview();
 
     return createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background-dark/60 backdrop-blur-md animate-fade-in px-4">
@@ -71,22 +99,37 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
                 </header>
 
                 <div className="space-y-8 py-2">
-                    {/* Font Size Row */}
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-baseline">
-                            <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-ink-light flex items-center gap-2">
-                                <Type size={12} /> Font Size
-                            </label>
-                            <span className="font-sans text-xs font-semibold">{fontSize}px</span>
+                    <div className="grid grid-cols-2 gap-8">
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-baseline">
+                                <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-ink-light flex items-center gap-2">
+                                    <Type size={12} /> Font Size
+                                </label>
+                                <span className="font-sans text-xs font-semibold">{fontSize}px</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="14" max="42" step="1"
+                                value={fontSize}
+                                onChange={(e) => setFontSize(parseInt(e.target.value))}
+                                className="w-full h-1 bg-ink/10 rounded-full appearance-none cursor-pointer accent-ink dark:bg-gray-700"
+                            />
                         </div>
-                        <input
-                            type="range"
-                            min="14" max="42" step="1"
-                            value={fontSize}
-                            onChange={(e) => setFontSize(parseInt(e.target.value))}
-                            className="w-full h-1 bg-ink/10 rounded-full appearance-none cursor-pointer accent-ink dark:bg-gray-700"
-                        />
-                        <p className="text-[10px] text-ink-light/60 font-sans italic">Pages will automatically adjust to fit your screen.</p>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-baseline">
+                                <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-ink-light flex items-center gap-2">
+                                    <Layout size={12} /> Lines
+                                </label>
+                                <span className="font-sans text-xs font-semibold">{linesPerPage}</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="10" max="60" step="1"
+                                value={linesPerPage}
+                                onChange={(e) => setLinesPerPage(parseInt(e.target.value))}
+                                className="w-full h-1 bg-ink/10 rounded-full appearance-none cursor-pointer accent-ink dark:bg-gray-700"
+                            />
+                        </div>
                     </div>
 
                     {/* Smart Start Point Selection */}
@@ -107,6 +150,14 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
                                 onChange={(e) => handleSearch(e.target.value)}
                                 className="w-full bg-ink/[0.03] dark:bg-white/[0.03] border border-ink/10 dark:border-white/10 rounded-sm py-3 px-4 text-sm font-sans focus:outline-none focus:border-ink/30 transition-all italic"
                             />
+                        </div>
+
+                        {/* Context Preview Box */}
+                        <div className="mt-4 p-5 bg-ink/[0.02] dark:bg-white/[0.02] border border-ink/5 rounded-sm relative group">
+                            <div className="absolute top-2 right-3 text-[8px] uppercase tracking-widest opacity-20 group-hover:opacity-100 transition-opacity">Context Preview</div>
+                            <pre className="text-[11px] leading-relaxed font-serif text-ink-light dark:text-gray-400 whitespace-pre-wrap">
+                                {previewDisplay}
+                            </pre>
                         </div>
 
                         <div className="flex items-center gap-4">
