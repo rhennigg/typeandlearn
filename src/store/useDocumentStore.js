@@ -21,14 +21,16 @@ const useDocumentStore = create((set) => ({
 
     setPages: (originalPages) => {
         const fullText = originalPages.map(p => p.text).join('\n');
-        const lines = fullText.split('\n').filter(line => line.trim().length > 0);
+
+        // Virtual Line Splitting Logic (~90 characters per line)
+        const virtualLines = fullText.match(/.{1,90}(\s|$)/g) || [fullText];
+        const lpp = 20;
 
         const newPages = [];
-        const lpp = 20; // Default or current state value
-        for (let i = 0; i < lines.length; i += lpp) {
+        for (let i = 0; i < virtualLines.length; i += lpp) {
             newPages.push({
                 pageNumber: Math.floor(i / lpp) + 1,
-                text: lines.slice(i, i + lpp).join('\n')
+                text: virtualLines.slice(i, i + lpp).join('\n')
             });
         }
 
@@ -40,19 +42,29 @@ const useDocumentStore = create((set) => ({
     },
 
     setLinesPerPage: (lpp) => set((state) => {
-        const lines = state.rawText.split('\n').filter(line => line.trim().length > 0);
+        const fullText = state.rawText;
+        const virtualLines = fullText.match(/.{1,90}(\s|$)/g) || [fullText];
+
         const newPages = [];
-        for (let i = 0; i < lines.length; i += lpp) {
+        for (let i = 0; i < virtualLines.length; i += lpp) {
             newPages.push({
                 pageNumber: Math.floor(i / lpp) + 1,
-                text: lines.slice(i, i + lpp).join('\n')
+                text: virtualLines.slice(i, i + lpp).join('\n')
             });
         }
+
+        // Maintain relative position
+        const currentLineIndex = state.currentPageIndex * state.linesPerPage;
+        const startLineIndex = state.startPageOffset * state.linesPerPage;
+
+        const newPageIndex = Math.floor(currentLineIndex / lpp);
+        const newStartOffset = Math.floor(startLineIndex / lpp);
+
         return {
             linesPerPage: lpp,
             pages: newPages,
-            // Reset current page if it's out of bounds after re-pagination
-            currentPageIndex: Math.min(state.currentPageIndex, newPages.length - 1)
+            currentPageIndex: Math.min(newPageIndex, newPages.length - 1),
+            startPageOffset: Math.min(newStartOffset, newPages.length - 1)
         };
     }),
 
@@ -64,12 +76,12 @@ const useDocumentStore = create((set) => ({
 
         if (index === -1) return state;
 
-        // Calculate line number up to the matched phrase
+        // Calculate virtual lines before the matched phrase
         const textBefore = fullText.substring(0, index);
-        const lineCountBefore = textBefore.split('\n').filter(line => line.trim().length > 0).length;
+        const virtualLinesBefore = (textBefore.match(/.{1,90}(\s|$)/g) || []).length;
 
         // Calculate page index
-        const targetPageIndex = Math.floor(lineCountBefore / state.linesPerPage);
+        const targetPageIndex = Math.floor(virtualLinesBefore / state.linesPerPage);
 
         return {
             currentPageIndex: Math.min(targetPageIndex, state.pages.length - 1),

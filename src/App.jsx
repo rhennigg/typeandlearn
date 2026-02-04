@@ -39,8 +39,8 @@ function AppContent() {
             <div className="min-h-screen bg-background-light dark:bg-background-dark relative">
                 {/* 1. Engine Content Layer (z-0) */}
                 <div className={cn(
-                    "relative z-0 transition-opacity duration-300",
-                    appMode === 'config' && "opacity-50 pointer-events-none"
+                    "relative z-0 transition-all duration-500",
+                    appMode === 'config' && "blur-md grayscale opacity-20 pointer-events-none"
                 )}>
                     {appMode === 'typing' ? <TypingEngine /> : <ReadingEngine />}
                 </div>

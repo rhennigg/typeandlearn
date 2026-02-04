@@ -78,7 +78,7 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
     const previewDisplay = getContextPreview();
 
     return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background-dark/60 backdrop-blur-md animate-fade-in px-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background-dark/95 backdrop-blur-xl animate-fade-in px-4">
             <Card className="w-full max-w-lg p-10 bg-paper dark:bg-background-dark shadow-2xl space-y-8 border-ink/10 relative overflow-hidden">
                 {/* Visual Accent */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-ink opacity-10"></div>
@@ -164,7 +164,7 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
                             <div className="flex-1 space-y-2">
                                 <div className="flex justify-between text-[10px] uppercase tracking-widest text-ink/40">
                                     <span>Manual Adjust</span>
-                                    <span>Page {startPageOffset + 1}</span>
+                                    <span>Page {startPageOffset + 1} / {pages.length}</span>
                                 </div>
                                 <input
                                     type="range"
