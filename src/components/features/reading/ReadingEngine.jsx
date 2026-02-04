@@ -40,6 +40,22 @@ export const ReadingEngine = () => {
         }
     };
 
+    const closeSidebar = () => {
+        setShowSidebar(false);
+        setPendingHighlight(null);
+        window.getSelection()?.removeAllRanges();
+    };
+
+    React.useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                closeSidebar();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
     const handleAddNote = async (noteContent) => {
         const newAnnotation = {
             ...noteContent,
@@ -100,10 +116,7 @@ export const ReadingEngine = () => {
                     annotations={annotations}
                     pageIndex={currentPageIndex}
                     pendingHighlight={pendingHighlight}
-                    onClose={() => {
-                        setShowSidebar(false);
-                        setPendingHighlight(null);
-                    }}
+                    onClose={closeSidebar}
                     onAddNote={handleAddNote}
                 />
             )}

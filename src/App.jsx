@@ -35,7 +35,7 @@ function AppContent() {
     if (appMode !== 'idle' && document) {
         return (
             <div className="relative">
-                <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+                <div className="fixed top-4 right-8 z-50 flex items-center gap-2">
                     <ThemeToggle />
                     <div className="h-6 w-px bg-ink/20 mx-2"></div>
                     <Button
