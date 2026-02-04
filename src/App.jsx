@@ -14,21 +14,21 @@ import { PDFExporter } from '@/components/features/export/PDFExporter';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "PLACEHOLDER_CLIENT_ID";
 
 function AppContent() {
-    const { isAuthenticated, user, logout } = useAuthStore();
+    const { isAuthenticated, isGuest, user, logout, setGuestMode } = useAuthStore();
     const { document, resetDocument } = useDocumentStore();
     const [appMode, setAppMode] = useState('idle'); // 'idle', 'typing', 'reading'
 
-    // Verification helper for dev mode if no file is loaded (Optional)
-    // const startDemo = () => { ... }
-
     const handleStartTyping = () => setAppMode('typing');
     const handleStartReading = () => setAppMode('reading');
-
     const handleExitSession = () => setAppMode('idle');
 
     const handleReset = () => {
         setAppMode('idle');
         resetDocument();
+    };
+
+    const handleGuestMode = () => {
+        setGuestMode(true);
     };
 
     // Active Session View
@@ -63,6 +63,8 @@ function AppContent() {
         );
     }
 
+    const showMainUI = isAuthenticated || isGuest;
+
     return (
         <div className="min-h-screen flex flex-col items-center justify-center font-serif text-ink dark:text-gray-100 transition-colors duration-500 bg-background-light dark:bg-background-dark">
             <header className="absolute top-0 w-full p-6 flex justify-between items-center z-10">
@@ -73,14 +75,15 @@ function AppContent() {
 
                 <nav className="text-sm font-sans text-ink-light space-x-4 flex items-center">
                     <ThemeToggle />
-                    {isAuthenticated ? (
+                    {showMainUI ? (
                         <>
-                            <span className="hidden sm:inline-block">Welcome, {user?.given_name}</span>
+                            {isAuthenticated && <span className="hidden sm:inline-block">Welcome, {user?.given_name}</span>}
+                            {isGuest && <span className="hidden sm:inline-block italic opacity-60">Guest Mode</span>}
                             <Button variant="ghost" size="sm" onClick={logout}>Sign Out</Button>
                             {document && <Button variant="ghost" size="sm" onClick={handleReset}>New Upload</Button>}
                         </>
                     ) : (
-                        <span className="text-xs uppercase tracking-widest opacity-50">Guest Mode</span>
+                        <span className="text-xs uppercase tracking-widest opacity-50">Locked</span>
                     )}
                 </nav>
             </header>
@@ -101,9 +104,13 @@ function AppContent() {
                 )}
 
                 <div className="pt-10 flex flex-col items-center gap-4 w-full">
-                    {!isAuthenticated ? (
-                        <div className="animate-fade-in-up">
+                    {!showMainUI ? (
+                        <div className="animate-fade-in-up flex flex-col items-center gap-4">
                             <LoginButton />
+                            <div className="flex flex-col items-center gap-2">
+                                <span className="text-xs text-ink-light opacity-50 font-sans uppercase tracking-widest">or</span>
+                                <Button variant="ghost" onClick={handleGuestMode} className="text-xs">Continue as Guest</Button>
+                            </div>
                             <p className="mt-4 text-xs text-ink-light/60 font-sans max-w-xs mx-auto">
                                 Authentication required to sync progress to Google Drive.
                             </p>

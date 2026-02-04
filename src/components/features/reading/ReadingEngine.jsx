@@ -23,17 +23,20 @@ export const ReadingEngine = () => {
         if (!selection || selection.isCollapsed || !containerRef.current) return;
 
         const range = selection.getRangeAt(0);
-        if (!containerRef.current.contains(range.commonAncestorContainer)) return;
+        // Ensure the selection is within our text container
+        if (!containerRef.current.contains(range.startContainer)) return;
 
-        // Calculate offsets relative to the text content
         const offsets = HighlightingHelper.getSelectionOffsets(containerRef.current);
-        if (offsets) {
+        if (offsets && (offsets.end - offsets.start) > 0) {
             setPendingHighlight({
                 start: offsets.start,
                 end: offsets.end,
                 text: selection.toString()
             });
             setShowSidebar(true);
+
+            // Clear browser selection to show our custom highlight
+            selection.removeAllRanges();
         }
     };
 
@@ -64,7 +67,12 @@ export const ReadingEngine = () => {
         if (!currentPage) return null;
 
         const pageAnnotations = annotations.filter(a => a.pageNumber === currentPageIndex + 1);
-        const highlights = pageAnnotations.flatMap(a => a.highlights || []);
+        let highlights = pageAnnotations.flatMap(a => a.highlights || []);
+
+        // Add pending highlight to the list for immediate feedback
+        if (pendingHighlight) {
+            highlights = [...highlights, pendingHighlight];
+        }
 
         return HighlightingHelper.renderTextWithHighlights(currentPage.text, highlights);
     };
