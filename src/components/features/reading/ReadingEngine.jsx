@@ -31,12 +31,12 @@ export const ReadingEngine = () => {
     // Dynamic Paging Logic
     React.useEffect(() => {
         const calculateLines = () => {
-            if (!textContainerRef.current) return;
+            if (!textContainerRef.current || appMode === 'config') return;
 
             const availableHeight = textContainerRef.current.clientHeight;
             // Line height is roughly fontSize * 1.625
             const lineHeight = fontSize * 1.625;
-            const targetLines = Math.max(5, Math.floor(availableHeight / lineHeight));
+            const targetLines = Math.max(5, Math.floor(availableHeight / lineHeight) - 2);
 
             if (targetLines !== useDocumentStore.getState().linesPerPage) {
                 setLinesPerPage(targetLines);
@@ -48,7 +48,7 @@ export const ReadingEngine = () => {
 
         calculateLines();
         return () => observer.disconnect();
-    }, [fontSize, setLinesPerPage]);
+    }, [fontSize, setLinesPerPage, appMode]);
 
     const handleSelection = () => {
         const selection = window.getSelection();
@@ -141,22 +141,19 @@ export const ReadingEngine = () => {
         <div className="h-screen bg-paper dark:bg-background-dark text-ink dark:text-gray-100 flex transition-colors duration-500 overflow-hidden">
             <div
                 className={cn(
-                    "flex-1 flex flex-col items-center pt-24 pb-20 px-8 transition-all duration-300",
-                    showSidebar ? 'mr-0' : '',
+                    "flex-1 max-w-4xl mx-auto w-full px-8 pt-24 pb-20 flex flex-col justify-center items-center",
                     appMode === 'config' && "opacity-40"
                 )}
                 onMouseUp={handleSelection}
             >
                 <div
                     ref={textContainerRef}
-                    className="w-full max-w-2xl flex-1 flex flex-col justify-center overflow-hidden"
-                    style={{
-                        paddingLeft: `${contentPadding}px`,
-                        paddingRight: `${contentPadding}px`,
-                        fontSize: `${fontSize}px`
-                    }}
+                    className="w-full flex-1 flex flex-col justify-start pt-12 overflow-hidden"
                 >
-                    <div className="font-serif leading-relaxed text-justify whitespace-pre-line">
+                    <div
+                        className="font-serif leading-relaxed tracking-wide text-justify text-ink dark:text-[#E6E1D9]"
+                        style={{ fontSize: `${fontSize}px` }}
+                    >
                         {renderPageContent()}
                     </div>
                 </div>

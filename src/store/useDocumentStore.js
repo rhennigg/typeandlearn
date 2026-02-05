@@ -1,5 +1,16 @@
 import { create } from 'zustand';
 
+const getVirtualLines = (text, maxChars = 80) => {
+    if (!text) return [];
+    return text.split('\n').flatMap(line => {
+        if (!line.trim()) return [''];
+        // Split specifically by characters while respecting word boundaries
+        const regex = new RegExp(`.{1,${maxChars}}(\\s+|$)`, 'g');
+        const chunks = line.match(regex);
+        return chunks ? chunks.map(c => c.trimEnd()) : [line];
+    });
+};
+
 const useDocumentStore = create((set) => ({
     document: null, // { id, title, totalPages }
     pages: [], // Array of { pageNumber, text }
@@ -12,6 +23,7 @@ const useDocumentStore = create((set) => ({
     linesPerPage: 15,
     appMode: 'idle', // 'idle', 'config', 'reading', 'typing'
     rawText: '',
+    baseText: '',
 
     setAppMode: (mode) => set({ appMode: mode }),
     setDocument: (doc) => set({
@@ -21,11 +33,9 @@ const useDocumentStore = create((set) => ({
 
     setPages: (originalPages) => {
         const fullText = originalPages.map(p => p.text).join('\n');
-
-        // Virtual Line Splitting Logic (~90 characters per line)
-        const virtualLines = fullText.match(/.{1,90}(\s|$)/g) || [fullText];
         const lpp = 20;
 
+        const virtualLines = getVirtualLines(fullText);
         const newPages = [];
         for (let i = 0; i < virtualLines.length; i += lpp) {
             newPages.push({
@@ -37,13 +47,14 @@ const useDocumentStore = create((set) => ({
         set({
             pages: newPages,
             rawText: fullText,
+            baseText: fullText,
             linesPerPage: lpp
         });
     },
 
     setLinesPerPage: (lpp) => set((state) => {
-        const fullText = state.rawText;
-        const virtualLines = fullText.match(/.{1,90}(\s|$)/g) || [fullText];
+        const currentText = state.rawText;
+        const virtualLines = getVirtualLines(currentText);
 
         const newPages = [];
         for (let i = 0; i < virtualLines.length; i += lpp) {
@@ -69,23 +80,49 @@ const useDocumentStore = create((set) => ({
     }),
 
     jumpToText: (phrase) => set((state) => {
-        if (!phrase || phrase.trim().length < 4) return state;
+        const sourceText = state.baseText || state.rawText;
 
-        const fullText = state.rawText;
-        const index = fullText.toLowerCase().indexOf(phrase.toLowerCase());
+        // If phrase is cleared or too short, restore original document
+        if (!phrase || phrase.trim().length < 4) {
+            if (state.rawText === state.baseText) return state;
 
+            const virtualLines = getVirtualLines(sourceText);
+            const newPages = [];
+            for (let i = 0; i < virtualLines.length; i += state.linesPerPage) {
+                newPages.push({
+                    pageNumber: Math.floor(i / state.linesPerPage) + 1,
+                    text: virtualLines.slice(i, i + state.linesPerPage).join('\n')
+                });
+            }
+
+            return {
+                rawText: sourceText,
+                pages: newPages,
+                currentPageIndex: 0,
+                startPageOffset: 0
+            };
+        }
+
+        const index = sourceText.toLowerCase().indexOf(phrase.toLowerCase());
         if (index === -1) return state;
 
-        // Calculate virtual lines before the matched phrase
-        const textBefore = fullText.substring(0, index);
-        const virtualLinesBefore = (textBefore.match(/.{1,90}(\s|$)/g) || []).length;
+        // Found phrase! Slice from that point
+        const slicedText = sourceText.substring(index);
+        const virtualLines = getVirtualLines(slicedText);
 
-        // Calculate page index
-        const targetPageIndex = Math.floor(virtualLinesBefore / state.linesPerPage);
+        const newPages = [];
+        for (let i = 0; i < virtualLines.length; i += state.linesPerPage) {
+            newPages.push({
+                pageNumber: Math.floor(i / state.linesPerPage) + 1,
+                text: virtualLines.slice(i, i + state.linesPerPage).join('\n')
+            });
+        }
 
         return {
-            currentPageIndex: Math.min(targetPageIndex, state.pages.length - 1),
-            startPageOffset: Math.min(targetPageIndex, state.pages.length - 1)
+            rawText: slicedText,
+            pages: newPages,
+            currentPageIndex: 0,
+            startPageOffset: 0
         };
     }),
 
@@ -115,6 +152,7 @@ const useDocumentStore = create((set) => ({
         appMode: 'idle',
         currentPageIndex: 0,
         rawText: '',
+        baseText: '',
         startPageOffset: 0,
         annotations: []
     }),

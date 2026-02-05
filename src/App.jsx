@@ -74,7 +74,7 @@ function AppContent() {
                 {/* 3. Modal Layer (Always rendered last for final priority) */}
                 {appMode === 'config' && (
                     <ReadingConfigModal
-                        onConfirm={() => setAppMode('reading')}
+                        onConfirm={(mode) => setAppMode(mode)}
                         onCancel={() => setAppMode('idle')}
                     />
                 )}

@@ -9,9 +9,7 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
     const {
         document: activeDocument,
         pages,
-        fontSize, setFontSize,
         startPageOffset, setStartPageOffset,
-        linesPerPage, setLinesPerPage,
         setCurrentPageIndex,
         resetDocument,
         rawText,
@@ -23,9 +21,9 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
 
     if (!activeDocument) return null;
 
-    const handleStart = () => {
+    const handleStart = (mode = 'reading') => {
         setCurrentPageIndex(startPageOffset);
-        onConfirm();
+        onConfirm(mode);
     };
 
     const handleCancel = () => {
@@ -78,7 +76,7 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
     const previewDisplay = getContextPreview();
 
     return createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background-dark/95 backdrop-blur-xl animate-fade-in px-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background-dark/40 backdrop-blur-xl animate-fade-in px-4">
             <Card className="w-full max-w-lg p-10 bg-paper dark:bg-background-dark shadow-2xl space-y-8 border-ink/10 relative overflow-hidden">
                 {/* Visual Accent */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-ink opacity-10"></div>
@@ -99,39 +97,6 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
                 </header>
 
                 <div className="space-y-8 py-2">
-                    <div className="grid grid-cols-2 gap-8">
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-baseline">
-                                <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-ink-light flex items-center gap-2">
-                                    <Type size={12} /> Font Size
-                                </label>
-                                <span className="font-sans text-xs font-semibold">{fontSize}px</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="14" max="42" step="1"
-                                value={fontSize}
-                                onChange={(e) => setFontSize(parseInt(e.target.value))}
-                                className="w-full h-1 bg-ink/10 rounded-full appearance-none cursor-pointer accent-ink dark:bg-gray-700"
-                            />
-                        </div>
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-baseline">
-                                <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-ink-light flex items-center gap-2">
-                                    <Layout size={12} /> Lines
-                                </label>
-                                <span className="font-sans text-xs font-semibold">{linesPerPage}</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="10" max="60" step="1"
-                                value={linesPerPage}
-                                onChange={(e) => setLinesPerPage(parseInt(e.target.value))}
-                                className="w-full h-1 bg-ink/10 rounded-full appearance-none cursor-pointer accent-ink dark:bg-gray-700"
-                            />
-                        </div>
-                    </div>
-
                     {/* Smart Start Point Selection */}
                     <div className="space-y-4">
                         <div className="flex justify-between items-baseline">
@@ -153,7 +118,7 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
                         </div>
 
                         {/* Context Preview Box */}
-                        <div className="mt-4 p-5 bg-ink/[0.02] dark:bg-white/[0.02] border border-ink/5 rounded-sm relative group">
+                        <div className="mt-4 p-5 bg-ink/[0.02] dark:bg-white/[0.02] border border-ink/5 rounded-sm relative group h-32 overflow-y-auto">
                             <div className="absolute top-2 right-3 text-[8px] uppercase tracking-widest opacity-20 group-hover:opacity-100 transition-opacity">Context Preview</div>
                             <pre className="text-[11px] leading-relaxed font-serif text-ink-light dark:text-gray-400 whitespace-pre-wrap">
                                 {previewDisplay}
@@ -179,8 +144,11 @@ export const ReadingConfigModal = ({ onConfirm, onCancel }) => {
                 </div>
 
                 <div className="pt-4 flex flex-col gap-4">
-                    <Button onClick={handleStart} size="lg" className="w-full text-sm tracking-widest py-6">
-                        Confirm & Start Session
+                    <Button onClick={() => handleStart('reading')} size="lg" className="w-full text-sm tracking-widest py-6">
+                        Confirm & Start Reading
+                    </Button>
+                    <Button onClick={() => handleStart('typing')} variant="secondary" size="lg" className="w-full text-sm tracking-widest py-6">
+                        Confirm & Start Typing
                     </Button>
                 </div>
             </Card>

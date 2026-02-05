@@ -14,8 +14,9 @@ export const TypingEngine = () => {
         nextPage,
         prevPage,
         resetDocument,
-        document,
+        document: activeDocument,
         fontSize,
+        appMode,
         setLinesPerPage
     } = useDocumentStore();
     const { accessToken } = useAuthStore();
@@ -35,12 +36,12 @@ export const TypingEngine = () => {
     // Dynamic Paging Logic
     useEffect(() => {
         const calculateLines = () => {
-            if (!textContainerRef.current) return;
+            if (!textContainerRef.current || appMode === 'config') return;
 
             const availableHeight = textContainerRef.current.clientHeight;
             // Line height is roughly fontSize * 1.625 (standard for our serif font)
             const lineHeight = fontSize * 1.625;
-            const targetLines = Math.max(5, Math.floor(availableHeight / lineHeight));
+            const targetLines = Math.max(5, Math.floor(availableHeight / lineHeight) - 2);
 
             if (targetLines !== useDocumentStore.getState().linesPerPage) {
                 setLinesPerPage(targetLines);
@@ -52,7 +53,7 @@ export const TypingEngine = () => {
 
         calculateLines();
         return () => observer.disconnect();
-    }, [fontSize, setLinesPerPage]);
+    }, [fontSize, setLinesPerPage, appMode]);
 
     // Text to type
     const targetText = currentPage?.text || "";
@@ -101,7 +102,7 @@ export const TypingEngine = () => {
     };
 
     const saveProgress = async (finalStats, pageIndex) => {
-        if (!accessToken || !document) return;
+        if (!accessToken || !activeDocument) return;
 
         setIsSyncing(true);
         try {
@@ -112,7 +113,7 @@ export const TypingEngine = () => {
                 stats: finalStats
             };
 
-            await syncProgress(accessToken, document.title, progressData);
+            await syncProgress(accessToken, activeDocument.title, progressData);
             console.log("Progress synced to Drive");
         } catch (error) {
             console.error("Failed to sync progress:", error);
@@ -127,16 +128,16 @@ export const TypingEngine = () => {
             const typedChar = input[index];
             const isDark = document.documentElement?.classList.contains('dark');
 
-            let statusClass = "text-ink/20 dark:text-gray-600"; // Default: Untyped
+            let statusClass = "text-ink/40 dark:text-gray-500"; // Default: Untyped
 
             if (typedChar !== undefined) {
                 if (typedChar === char) {
-                    statusClass = "text-ink opacity-100 dark:text-gray-100"; // Correct
+                    statusClass = "text-ink dark:text-gray-100 opacity-100"; // Correct
                 } else {
-                    statusClass = "text-red-500 opacity-100 bg-red-100/50 dark:bg-red-900/30"; // Incorrect
+                    statusClass = "text-red-600 dark:text-red-400 opacity-100 bg-red-100/50 dark:bg-red-900/30"; // Incorrect
                 }
             } else if (index === input.length) {
-                statusClass = "text-ink/20 dark:text-gray-600 border-l-2 border-primary animate-pulse pl-0.5"; // Cursor position
+                statusClass = "text-ink/40 dark:text-gray-500 border-l-2 border-primary animate-pulse pl-0.5"; // Cursor position
             }
 
             return (
@@ -167,7 +168,7 @@ export const TypingEngine = () => {
             <div className="flex-1 max-w-4xl mx-auto w-full px-8 pt-24 pb-20 flex flex-col justify-center items-center overflow-hidden">
                 <div
                     ref={textContainerRef}
-                    className="w-full flex-1 flex flex-col justify-center overflow-hidden"
+                    className="w-full flex-1 flex flex-col justify-start pt-12 overflow-hidden"
                 >
                     <div
                         className="font-serif leading-relaxed tracking-wide text-justify outline-none select-none relative dark:text-gray-100"
